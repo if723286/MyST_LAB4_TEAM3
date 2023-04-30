@@ -1,6 +1,6 @@
 ## Description
-*Insert here a brief description of the project, including, purpose, technologies used and context 
-where it was created.*
+
+Proyecto Final (Analisis Técnico)
 
 ## Install dependencies
 
@@ -15,7 +15,13 @@ Or you can manually install one by one using the name and version in the file.
 *Add here examples of core functionalities for the project in this repository.*
 
 ## Author
-*Add Name and a brief description on who you are.*
+<center><font color=#555555><font size=6> I.F. Andrea Flores Fernández </font> <br> <br>
+
+<center><font color=#555555><font size=6> I.F. Tania Bell </font> <br> <br>
+
+<center><font color=#555555><font size=6> I.F. Fer Guerra </font> <br> <br>
+
+<center><font color=#555555><font size=6> I.F. Blas Cesar Sanchez Barba </font> <br> <br>
 
 ## License
 **GNU General Public License v3.0** 

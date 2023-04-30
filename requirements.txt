@@ -1,14 +1,19 @@
 
 # -- --------------------------------------------------------------------------------------------------- -- #
-# -- project: A SHORT DESCRIPTION OF THE PROJECT                                                         -- #
-# -- script: requirements.txt : text file with the required libraries for the project                    -- #
-# -- author: YOUR GITHUB USER NAME                                                                       -- #
-# -- license: GPL-3.0 License                                                                            -- #
-# -- repository: YOUR REPOSITORY URL                                                                     -- #
+# -- project: Proyecto Final (Analisis Técnico)                                                          -- #
+# -- script: functions.py : python script with general functions                                         -- #
+# -- author: Equipo 3 MICROESTRUCTURA Y SISTEMAS DE TRADING PRIM. 2023                                   -- #
+# -- license: THE LICENSE TYPE AS STATED IN THE REPOSITORY                                               -- #
+# -- repository: https://github.com/if723286/MyST_LAB5_TEAM3                                             -- #
 # -- --------------------------------------------------------------------------------------------------- -- #
-
-pandas>=1.1.0
-numpy>=1.19.1
-jupyter>=1.0.0
-chart_studio>=1.1
-plotly>=4.14
+pandas
+numpy
+jupyter
+chart_studio
+plotly
+asyncio
+ccxt.async_support
+time
+datetime
+numpy
+plotly.express
