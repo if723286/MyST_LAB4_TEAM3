@@ -9,11 +9,7 @@
 pandas
 numpy
 jupyter
-chart_studio
 plotly
-asyncio
-ccxt.async_support
-time
 datetime
 numpy
-plotly.express
+MetaTrader5
