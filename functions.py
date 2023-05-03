@@ -15,6 +15,10 @@ import pandas as pd
 import pytz
 from datetime import datetime
 
+from ta import *
+import plotly.graph_objs as go
+from ta.volatility import BollingerBands
+
 """
 # This function was used to initially download
 # all the prices from mt5 to then be used
@@ -49,3 +53,27 @@ def f_import_mt5(list_tickers):
         mt5_rates[i].to_csv('files/'+i+'.csv')
     mt5.shutdown()
     return mt5_rates
+
+
+##Bollinger Bands 
+
+def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anchura de BB
+    bb = BollingerBands(close=data['price'], window=window_length, window_dev=k)
+    
+    # Dataframe
+    bb_df = pd.DataFrame()
+    bb_df['middle'] = bb.bollinger_mavg()
+    bb_df['upper'] = bb.bollinger_hband()
+    bb_df['lower'] = bb.bollinger_lband()
+    bb_df['upper_signal'] = bb.bollinger_hband_indicator()
+    bb_df['lower_signal'] = bb.bollinger_lband_indicator()
+    
+    # gráfico BB con linea de precio 
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=data.index, y=data['price'], name='Price', line=dict(color='#FFFF00', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['upper'], name='Upper Bollinger Band', line=dict(color='#1B68A1', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['middle'], name='Middle Bollinger Band', line=dict(color='#0190B6', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='#1B68A1', width=2), connectgaps=True,))
+    fig.update_layout(title='Bollinger Bands', yaxis_title='Price', xaxis_title='Date')
+    
+    return bb_df, fig
