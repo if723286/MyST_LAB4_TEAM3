@@ -18,6 +18,7 @@ from datetime import datetime
 from ta import *
 import plotly.graph_objs as go
 from ta.volatility import BollingerBands
+from ta.momentum import RSIIndicator
 
 """
 # This function was used to initially download
@@ -45,7 +46,7 @@ def f_import_mt5(list_tickers):
     utc_from = datetime(2023,5,1,tzinfo=timezone)
     mt5_rates = {}
     for i in list_tickers:
-        rates=(mt5.copy_rates_from(i,mt5.TIMEFRAME_M15,utc_from,60000))
+        rates=(mt5.copy_rates_from(i,mt5.TIMEFRAME_M15,utc_from,85000))
         rates=pd.DataFrame(rates)
         rates['time'] = pd.to_datetime(rates['time'], unit='s')
         #rates.to_csv('')
@@ -58,10 +59,10 @@ def f_import_mt5(list_tickers):
 ##Bollinger Bands 
 
 def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anchura de BB
-    bb = BollingerBands(close=data['price'], window=window_length, window_dev=k)
+    bb = BollingerBands(close=data['close'], window=window_length, window_dev=k)
     
     # Dataframe
-    bb_df = pd.DataFrame()
+    bb_df = data
     bb_df['middle'] = bb.bollinger_mavg()
     bb_df['upper'] = bb.bollinger_hband()
     bb_df['lower'] = bb.bollinger_lband()
@@ -70,30 +71,46 @@ def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anc
     
     # gráfico BB con linea de precio 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data.index, y=data['price'], name='Price', line=dict(color='#yellow', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['upper'], name='Upper Bollinger Band', line=dict(color='#navy', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['middle'], name='Middle Bollinger Band', line=dict(color='#lightblue', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='#navy', width=2), connectgaps=True,))
-    fig.update_layout(title='Bollinger Bands', yaxis_title='Price', xaxis_title='Date')
+    fig.add_trace(go.Scatter(x=data['time'], y=data['close'], name='Close', line=dict(color='yellow', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=bb_df['upper'], name='Upper Bollinger Band', line=dict(color='navy', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=bb_df['middle'], name='Middle Bollinger Band', line=dict(color='lightblue', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='navy', width=2), connectgaps=True,))
+    fig.update_layout(title='Bollinger Bands', yaxis_title='Close', xaxis_title='Date')
     
     return bb_df, fig
 
 ## RSI
 
 def rsi(data, window_length=25):
-    rsi = ta.momentum.RSIIndicator(data['price'], window=window_length)
+    rsi = RSIIndicator(data['close'], window=window_length)
     
     # Dataframe
-    rsi_df = pd.DataFrame()
+    rsi_df = data
     rsi_df['rsi'] = rsi.rsi()
     rsi_df['rsi_upper'] = 80 #para mejores entrys (normal 70)
     rsi_df['rsi_lower'] = 20 # para mejores entrys (normal 30)
     
     # gráfico RSI
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi'], name='RSI', line=dict(color='#purple', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi_upper'], name='Overbought', line=dict(color='yellow', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi_lower'], name='Oversold', line=dict(color='#yellow', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=rsi_df['rsi'], name='RSI', line=dict(color='purple', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=rsi_df['rsi_upper'], name='Overbought', line=dict(color='yellow', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data['time'], y=rsi_df['rsi_lower'], name='Oversold', line=dict(color='yellow', width=2), connectgaps=True))
     fig.update_layout(title='Relative Strength Index', yaxis_title='RSI', xaxis_title='Date')
     
     return rsi_df, fig
+
+def signal(data, window_length=20, k=2, rsi_window=25):
+    bb_df, _ = bollinger(data, window_length, k)
+    rsi_df, _ = rsi(data, rsi_window)
+    
+    bb_signal = bb_df['upper_signal'] - bb_df['lower_signal']
+    rsi_signal = rsi_df['rsi'] - 50
+    
+    if bb_signal.iloc[-1] == 1 and rsi_signal.iloc[-1] > 0:
+        return "Buy"
+    elif bb_signal.iloc[-1] == -1 and rsi_signal.iloc[-1] < 0:
+        return "Sell"
+    elif rsi_signal.iloc[-1] > 0:
+        return "Buy"
+    else:
+        return "Sell"

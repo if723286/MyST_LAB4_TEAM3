@@ -13,3 +13,4 @@ plotly
 datetime
 numpy
 MetaTrader5
+ta
