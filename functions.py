@@ -70,10 +70,30 @@ def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anc
     
     # gráfico BB con linea de precio 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data.index, y=data['price'], name='Price', line=dict(color='#FFFF00', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['upper'], name='Upper Bollinger Band', line=dict(color='#1B68A1', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['middle'], name='Middle Bollinger Band', line=dict(color='#0190B6', width=2), connectgaps=True))
-    fig.add_trace(go.Scatter(x=data.index, y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='#1B68A1', width=2), connectgaps=True,))
+    fig.add_trace(go.Scatter(x=data.index, y=data['price'], name='Price', line=dict(color='#yellow', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['upper'], name='Upper Bollinger Band', line=dict(color='#navy', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['middle'], name='Middle Bollinger Band', line=dict(color='#lightblue', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='#navy', width=2), connectgaps=True,))
     fig.update_layout(title='Bollinger Bands', yaxis_title='Price', xaxis_title='Date')
     
     return bb_df, fig
+
+## RSI
+
+def rsi(data, window_length=25):
+    rsi = ta.momentum.RSIIndicator(data['price'], window=window_length)
+    
+    # Dataframe
+    rsi_df = pd.DataFrame()
+    rsi_df['rsi'] = rsi.rsi()
+    rsi_df['rsi_upper'] = 80 #para mejores entrys (normal 70)
+    rsi_df['rsi_lower'] = 20 # para mejores entrys (normal 30)
+    
+    # gráfico RSI
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi'], name='RSI', line=dict(color='#purple', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi_upper'], name='Overbought', line=dict(color='yellow', width=2), connectgaps=True))
+    fig.add_trace(go.Scatter(x=data.index, y=rsi_df['rsi_lower'], name='Oversold', line=dict(color='#yellow', width=2), connectgaps=True))
+    fig.update_layout(title='Relative Strength Index', yaxis_title='RSI', xaxis_title='Date')
+    
+    return rsi_df, fig
