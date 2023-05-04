@@ -12,7 +12,7 @@
 import functions as fc
 import pandas as pd
 
-prices = fc.f_import_mt5(["EURUSD","USDMXN"])
+#prices = fc.f_import_mt5(["EURUSD","USDMXN"])
 
 eurusd = pd.read_csv("files/EURUSD.csv")
 eurusd['time'] = eurusd['time'].astype('datetime64')

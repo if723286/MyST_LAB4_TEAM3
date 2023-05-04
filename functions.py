@@ -9,7 +9,7 @@
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
 
-import MetaTrader5 as mt5
+#import MetaTrader5 as mt5
 import numpy as np
 import pandas as pd
 import pytz
@@ -25,7 +25,7 @@ from ta.momentum import RSIIndicator
 # all the prices from mt5 to then be used
 # in future labs and different computers
 # To run again remove comment and import MetaTrader as mt5.
-"""
+
  
 def f_import_mt5(list_tickers):
     '''
@@ -54,6 +54,8 @@ def f_import_mt5(list_tickers):
         mt5_rates[i].to_csv('files/'+i+'.csv')
     mt5.shutdown()
     return mt5_rates
+"""
+
 
 
 ##Bollinger Bands 
