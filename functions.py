@@ -82,7 +82,7 @@ def bollinger(data, window_length=20, k=2):
     fig.add_trace(go.Scatter(x=data['time'], y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='navy', width=2), connectgaps=True,))
     fig.update_layout(title='Bollinger Bands', yaxis_title='Close', xaxis_title='Date')
     
-    return bb_df, fig.show()
+    return bb_df, fig
 
 
 ## RSI
@@ -103,7 +103,7 @@ def rsi(data, window_length=25):
     fig.add_trace(go.Scatter(x=data['time'], y=rsi_df['rsi_lower'], name='Oversold', line=dict(color='yellow', width=2), connectgaps=True))
     fig.update_layout(title='Relative Strength Index', yaxis_title='RSI', xaxis_title='Date')
     
-    return rsi_df, fig.show()
+    return rsi_df, fig
 
 def signal(data, window_length=20, k=2, rsi_window=25):
     bb_df, _ = bollinger(data, window_length, k)
@@ -125,7 +125,6 @@ def signal(data, window_length=20, k=2, rsi_window=25):
 def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03):
     positions = []
     balance = 100000
-    
     # Iterar sobre los datos
     for i in range(len(data)):
         # Obtener la señal
@@ -234,20 +233,26 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 positions.pop(0)
 
             # Cerrar todas las posiciones que queden abiertas al final de los datos
-            while positions:
-                # Calcular el precio actual
-                price = data.iloc[-1]['close']
-                # Calcular el volumen de venta
-                amount = positions[0]['amount']
-                # Calcular el valor total de la posición
-                value = price * amount
-                # Actualizar el balance
-                balance += value
-                # Calcular la ganancia o pérdida de la posición
-                pnl = (price - positions[0]['open_price']) * amount
-                # Añadir la ganancia o pérdida a la lista de posiciones
-                positions[0]['pnl'] = pnl
-                # Eliminar la posición de la lista de posiciones
-                positions.pop(0)
-
-            return balance, positions
+    while positions:
+        # Calcular el precio actual
+        price = data.iloc[-1]['close']
+        # Calcular el volumen de venta
+        amount = positions[0]['amount']
+        # Calcular el valor total de la posición
+        value = price * amount
+        # Actualizar el balance
+        balance += value
+        # Calcular la ganancia o pérdida de la posición
+        pnl = (price - positions[0]['open_price']) * amount
+        # Añadir la ganancia o pérdida a la lista de posiciones
+        positions[0]['pnl'] = pnl
+        # Eliminar la posición de la lista de posiciones
+        positions.pop(0)
+    
+    print(balance)
+    # Plot RSI and Bollinger Bands
+    _, bb_fig = bollinger(data, window_length, k)
+    _, rsi_fig = rsi(data, rsi_window)
+    bb_fig.show()
+    rsi_fig.show()
+    #return balance, positions
