@@ -8,8 +8,6 @@
 # -- repository: https://github.com/if723286/MyST_LAB5_TEAM3                                             -- #
 # -- --------------------------------------------------------------------------------------------------- -- #
 """
-
-import functions as fc
 import pandas as pd
 
 #prices = fc.f_import_mt5(["EURUSD","USDMXN"])

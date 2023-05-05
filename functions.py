@@ -26,7 +26,6 @@ from ta.momentum import RSIIndicator
 # in future labs and different computers
 # To run again remove comment and import MetaTrader as mt5.
 
- 
 def f_import_mt5(list_tickers):
     '''
     Imports prices from MetaTrader5
@@ -57,11 +56,15 @@ def f_import_mt5(list_tickers):
 """
 
 
-
 ##Bollinger Bands 
 
-def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anchura de BB
-    bb = BollingerBands(close=data['close'], window=window_length, window_dev=k)
+import plotly.graph_objs as go
+import ta
+import pandas as pd
+import numpy as np
+
+def bollinger(data, window_length=20, k=2):
+    bb = ta.volatility.BollingerBands(close=data['close'], window=window_length, window_dev=k)
     
     # Dataframe
     bb_df = data
@@ -79,7 +82,8 @@ def bollinger(data, window_length=20, k=2): # k = cantidad de desviaciones o anc
     fig.add_trace(go.Scatter(x=data['time'], y=bb_df['lower'], name='Lower Bollinger Band', line=dict(color='navy', width=2), connectgaps=True,))
     fig.update_layout(title='Bollinger Bands', yaxis_title='Close', xaxis_title='Date')
     
-    return bb_df, fig
+    return bb_df, fig.show()
+
 
 ## RSI
 
@@ -99,7 +103,7 @@ def rsi(data, window_length=25):
     fig.add_trace(go.Scatter(x=data['time'], y=rsi_df['rsi_lower'], name='Oversold', line=dict(color='yellow', width=2), connectgaps=True))
     fig.update_layout(title='Relative Strength Index', yaxis_title='RSI', xaxis_title='Date')
     
-    return rsi_df, fig
+    return rsi_df, fig.show()
 
 def signal(data, window_length=20, k=2, rsi_window=25):
     bb_df, _ = bollinger(data, window_length, k)
@@ -109,10 +113,141 @@ def signal(data, window_length=20, k=2, rsi_window=25):
     rsi_signal = rsi_df['rsi'] - 50
     
     if bb_signal.iloc[-1] == 1 and rsi_signal.iloc[-1] > 0:
-        return "Buy"
-    elif bb_signal.iloc[-1] == -1 and rsi_signal.iloc[-1] < 0:
         return "Sell"
+    elif bb_signal.iloc[-1] == -1 and rsi_signal.iloc[-1] < 0:
+        return "Buy"
     elif rsi_signal.iloc[-1] > 0:
         return "Buy"
     else:
         return "Sell"
+    
+
+def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03):
+    positions = []
+    balance = 100000
+    
+    # Iterar sobre los datos
+    for i in range(len(data)):
+        # Obtener la señal
+        sig = signal(data.iloc[:i+1], window_length, k, rsi_window)
+        
+        # Si la señal es de compra
+        if sig == "Buy":
+            # Si no hay una posición abierta, abrir una nueva
+            if not positions:
+                # Calcular el precio de compra
+                price = data.iloc[i]['close']
+                # Calcular el volumen de compra
+                amount = volume
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance -= value
+                # Añadir la posición a la lista de posiciones
+                positions.append({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit)})
+                
+        # Si la señal es de venta
+        elif sig == "Sell":
+            # Si hay una posición abierta, cerrarla
+            if positions:
+                # Calcular el precio de venta
+                price = data.iloc[i]['close']
+                # Calcular el volumen de venta
+                amount = volume
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la ganancia o pérdida de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la ganancia o pérdida a la lista de posiciones
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+        
+        # Si hay una posición abierta, comprobar si se alcanza el stop loss o el take profit
+        if positions:
+            # Calcular el precio actual
+            price = data.iloc[i]['close']
+            # Comprobar si se alcanza el stop loss
+            if price <= positions[0]['stop_loss']:
+                # Calcular el volumen de venta
+                amount = positions[0]['amount']
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la pérdida de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la pérdida a la lista de posiciones
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+            # Comprobar si se alcanza el take profit
+            elif price >= positions[0]['take_profit']:
+                # Calcular el volumen de venta
+                amount = positions[0]['amount']
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la ganancia o pérdida de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la ganancia o pérdida a la lista de posiciones
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+        
+        # Si hay una posición abierta, comprobar si se alcanza el stop loss o el take profit
+        if positions:
+            # Calcular el precio actual
+            price = data.iloc[i]['close']
+            # Comprobar si se alcanza el stop loss
+            if price <= positions[0]['stop_loss']:
+                # Calcular el volumen de venta
+                amount = positions[0]['amount']
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la pérdida de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la pérdida a la lista de posiciones
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+                
+            # Comprobar si se alcanza el take profit
+            elif price >= positions[0]['take_profit']:
+                # Calcular el volumen de venta
+                amount = positions[0]['amount']
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la ganancia de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la ganancia a la
+
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+
+            # Cerrar todas las posiciones que queden abiertas al final de los datos
+            while positions:
+                # Calcular el precio actual
+                price = data.iloc[-1]['close']
+                # Calcular el volumen de venta
+                amount = positions[0]['amount']
+                # Calcular el valor total de la posición
+                value = price * amount
+                # Actualizar el balance
+                balance += value
+                # Calcular la ganancia o pérdida de la posición
+                pnl = (price - positions[0]['open_price']) * amount
+                # Añadir la ganancia o pérdida a la lista de posiciones
+                positions[0]['pnl'] = pnl
+                # Eliminar la posición de la lista de posiciones
+                positions.pop(0)
+
+            return balance, positions
