@@ -249,10 +249,9 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
         # Eliminar la posición de la lista de posiciones
         positions.pop(0)
     
-    print(balance)
     # Plot RSI and Bollinger Bands
     _, bb_fig = bollinger(data, window_length, k)
     _, rsi_fig = rsi(data, rsi_window)
     bb_fig.show()
     rsi_fig.show()
-    #return balance, positions
+    return balance, positions

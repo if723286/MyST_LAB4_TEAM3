@@ -24,4 +24,4 @@ usdmxn['time'] = usdmxn['time'].astype('datetime64')
 usdmxn_train = usdmxn[(usdmxn['time'] >= "2020-01-01") & (usdmxn['time'] < "2021-01-01")]
 usdmxn_test = usdmxn[(usdmxn['time'] >= "2021-01-01") & (usdmxn['time'] < "2022-01-01")]
 
-fc.automated_trading(eurusd_train, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03)
+print(fc.automated_trading(eurusd_train, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03))
