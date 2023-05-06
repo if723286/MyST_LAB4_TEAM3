@@ -292,3 +292,39 @@ def optimize_parameters(data, max_volume, max_stop_loss, max_take_profit):
     return best_volume, best_stop_loss, best_take_profit, best_balance
 
 
+import pyswarms as ps
+
+
+import pyswarms as ps
+import numpy as np
+from functions import automated_trading
+
+def optimize_parameters_pso(data, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10):
+    # Define the bounds of the parameters
+    bounds = (np.array([100, 0, 0]), np.array([max_volume, max_stop_loss, max_take_profit]))
+
+    # Define the function to be minimized
+    def objective_function(params):
+        volume, stop_loss, take_profit = params
+        balance, _, _ = automated_trading(data, volume=volume, stop_loss=stop_loss, take_profit=take_profit)
+        return -balance,  # return as a tuple
+
+    # Set up the optimizer
+    optimizer = ps.single.GlobalBestPSO(n_particles=num_particles, dimensions=3, options={'c1': 0.5, 'c2': 0.3, 'w': 0.9})
+
+    # Define the callback function to print progress
+    def callback_function(best_params, best_balance):
+        print(f'Iteration: {optimizer.iterations} - Best balance found: {-best_balance[0]:.2f}')
+
+    # Run the optimization
+    best_params, best_balance = optimizer.optimize(objective_function, iters=num_iterations, bounds=bounds, 
+                                                    callback=callback_function)
+
+    # Extract the best parameter values
+    best_volume, best_stop_loss, best_take_profit = best_params
+
+    return best_volume, best_stop_loss, best_take_profit, -best_balance[0]
+
+
+
+
