@@ -124,7 +124,7 @@ def signal(data, window_length=20, k=2, rsi_window=25):
         return "Sell"
     
 
-def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03):
+def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, stop_loss=0.02, take_profit=0.03):
     positions = []
     balance = 100000
     max_loss = 1000
@@ -262,6 +262,33 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
     # Plot RSI and Bollinger Bands
     _, bb_fig = bollinger(data, window_length, k)
     _, rsi_fig = rsi(data, rsi_window)
-    bb_fig.show()
-    rsi_fig.show()
+    #bb_fig.show()
+    #rsi_fig.show()
     return balance, positions, total_positions
+
+def optimize_parameters(data, max_volume, max_stop_loss, max_take_profit):
+    best_volume = 0
+    best_stop_loss = 0
+    best_take_profit = 0
+    best_balance = 0
+    results = []
+    
+    for volume in np.linspace(100, max_volume, num=10):
+        for stop_loss in np.linspace(0.01, max_stop_loss, num=10):
+            for take_profit in np.linspace(0.01, max_take_profit, num=10):
+                balance, _, _, = automated_trading(data, volume=volume, stop_loss=stop_loss, take_profit=take_profit)
+                if balance > best_balance:
+                    best_volume = volume
+                    best_stop_loss = stop_loss
+                    best_take_profit = take_profit
+                    best_balance = balance
+                
+                results.append([volume, stop_loss, take_profit, balance])
+    
+    results_df = pd.DataFrame(results, columns=['volume', 'stop_loss', 'take_profit', 'balance'])
+    
+    results_df.to_csv('files/parameter_results.csv', index=False)
+    
+    return best_volume, best_stop_loss, best_take_profit, best_balance
+
+
