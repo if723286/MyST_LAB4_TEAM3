@@ -19,6 +19,8 @@ from ta import *
 import plotly.graph_objs as go
 from ta.volatility import BollingerBands
 from ta.momentum import RSIIndicator
+import warnings
+warnings.filterwarnings("ignore")
 
 """
 # This function was used to initially download
@@ -125,6 +127,9 @@ def signal(data, window_length=20, k=2, rsi_window=25):
 def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, stop_loss=0.02, take_profit=0.03):
     positions = []
     balance = 100000
+    max_loss = 1000
+    total_positions = pd.DataFrame(columns=['type', 'open_price', 'amount', 'value', 'stop_loss', 'take_profit', 'pnl', 'balance'])
+
     # Iterar sobre los datos
     for i in range(len(data)):
         # Obtener la señal
@@ -144,7 +149,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 balance -= value
                 # Añadir la posición a la lista de posiciones
                 positions.append({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit)})
-                
+                total_positions = pd.concat([total_positions, pd.DataFrame({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'balance':balance}, index=[i])])
         # Si la señal es de venta
         elif sig == "Sell":
             # Si hay una posición abierta, cerrarla
@@ -161,6 +166,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la ganancia o pérdida a la lista de posiciones
                 positions[0]['pnl'] = pnl
+                total_positions = pd.concat([total_positions, pd.DataFrame({'type': 'short', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'pnl':pnl,'balance':balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
         
@@ -169,7 +175,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
             # Calcular el precio actual
             price = data.iloc[i]['close']
             # Comprobar si se alcanza el stop loss
-            if price <= positions[0]['stop_loss']:
+            if price <= positions[0]['stop_loss'] or abs(positions[0]['open_price'] - price) >= max_loss:
                 # Calcular el volumen de venta
                 amount = positions[0]['amount']
                 # Calcular el valor total de la posición
@@ -180,6 +186,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la pérdida a la lista de posiciones
                 positions[0]['pnl'] = pnl
+                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'pnl':pnl,'balance':balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
             # Comprobar si se alcanza el take profit
@@ -194,6 +201,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la ganancia o pérdida a la lista de posiciones
                 positions[0]['pnl'] = pnl
+                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'pnl':pnl,'balance':balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
         
@@ -202,7 +210,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
             # Calcular el precio actual
             price = data.iloc[i]['close']
             # Comprobar si se alcanza el stop loss
-            if price <= positions[0]['stop_loss']:
+            if price <= positions[0]['stop_loss'] or abs(positions[0]['open_price'] - price) >= max_loss:
                 # Calcular el volumen de venta
                 amount = positions[0]['amount']
                 # Calcular el valor total de la posición
@@ -213,6 +221,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la pérdida a la lista de posiciones
                 positions[0]['pnl'] = pnl
+                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': positions[0]['amount'], 'value': value, 'stop_loss': stop_loss, 'take_profit': take_profit, 'pnl': 0, 'balance': balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
                 
@@ -227,12 +236,12 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
                 # Calcular la ganancia de la posición
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la ganancia a la
-
                 positions[0]['pnl'] = pnl
+                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': positions[0]['amount'], 'value': value, 'stop_loss': stop_loss, 'take_profit': take_profit, 'pnl': 0, 'balance': balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
 
-            # Cerrar todas las posiciones que queden abiertas al final de los datos
+    # Cerrar todas las posiciones que queden abiertas al final de los datos
     while positions:
         # Calcular el precio actual
         price = data.iloc[-1]['close']
@@ -246,6 +255,7 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
         pnl = (price - positions[0]['open_price']) * amount
         # Añadir la ganancia o pérdida a la lista de posiciones
         positions[0]['pnl'] = pnl
+        total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': positions[0]['amount'], 'value': value, 'stop_loss': stop_loss, 'take_profit': take_profit, 'pnl': 0, 'balance': balance}, index=[i])])
         # Eliminar la posición de la lista de posiciones
         positions.pop(0)
     
@@ -254,4 +264,4 @@ def automated_trading(data, window_length=20, k=2, rsi_window=25, volume=1000, s
     _, rsi_fig = rsi(data, rsi_window)
     bb_fig.show()
     rsi_fig.show()
-    return balance, positions
+    return balance, positions, total_positions
