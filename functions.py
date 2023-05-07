@@ -20,6 +20,7 @@ import plotly.graph_objs as go
 from ta.volatility import BollingerBands
 from ta.momentum import RSIIndicator
 import warnings
+import pyswarms as ps
 warnings.filterwarnings("ignore")
 
 """
@@ -290,14 +291,6 @@ def optimize_parameters(data, max_volume, max_stop_loss, max_take_profit):
     results_df.to_csv('files/parameter_results.csv', index=False)
     
     return best_volume, best_stop_loss, best_take_profit, best_balance
-
-
-import pyswarms as ps
-
-
-import pyswarms as ps
-import numpy as np
-from functions import automated_trading
 
 def optimize_parameters_pso(data, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10):
     # Define the bounds of the parameters
