@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore")
 eurusd = pd.read_csv("files/EURUSD.csv")
 eurusd['time'] = eurusd['time'].astype('datetime64[ns]')
 #le baje el tiempo porque de esta forma si funciona, pero si lo quiero correr el año colapsa mi compu
-eurusd_train = eurusd[(eurusd['time'] >= "2020-01-01") & (eurusd['time'] < "2020-01-02")]
+eurusd_train = eurusd[(eurusd['time'] >= "2020-01-01") & (eurusd['time'] < "2021-01-01")]
 eurusd_test = eurusd[(eurusd['time'] >= "2021-01-01") & (eurusd['time'] < "2022-01-01")]
 
 usdmxn = pd.read_csv("files/USDMXN.csv")
@@ -28,4 +28,4 @@ usdmxn_test = usdmxn[(usdmxn['time'] >= "2021-01-01") & (usdmxn['time'] < "2022-
 
 #print(fc.automated_trading(eurusd_train, window_length=100, k=3, rsi_window=1, volume=100000, stop_loss=0.5, take_profit=0.5))
 #print(fc.optimize_parameters(eurusd_train,max_volume=100000, max_stop_loss=0.5, max_take_profit=0.5))
-print(fc.optimize_parameters_pso(eurusd_train, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10))
+#print(fc.optimize_parameters_pso(eurusd_train, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10))
