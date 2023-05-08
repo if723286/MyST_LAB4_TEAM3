@@ -28,4 +28,4 @@ usdmxn_test = usdmxn[(usdmxn['time'] >= "2021-01-01") & (usdmxn['time'] < "2022-
 
 #print(fc.automated_trading(eurusd_train, window_length=100, k=3, rsi_window=1, volume=100000, stop_loss=0.5, take_profit=0.5))
 #print(fc.optimize_parameters(eurusd_train,max_volume=100000, max_stop_loss=0.5, max_take_profit=0.5))
-#print(fc.optimize_parameters_pso(eurusd_train, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10))
+print(fc.optimize_parameters_pso(eurusd_train, max_volume=10000, max_stop_loss=0.05, max_take_profit=0.1, num_particles=10, num_iterations=10))
