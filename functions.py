@@ -127,7 +127,7 @@ def signal(data, window_length=20, k=2, rsi_window=25):
 
 def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, stop_loss=0.02, take_profit=0.03):
     data.index = pd.to_datetime(data.time)
-    data = data.groupby(pd.Grouper(freq='w')).last()
+    data = data.groupby(pd.Grouper(freq='m')).last()
     data = data.dropna()
     data
     positions = []
@@ -154,7 +154,8 @@ def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, st
                 balance -= value
                 # Añadir la posición a la lista de posiciones
                 positions.append({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit)})
-                total_positions = pd.concat([total_positions, pd.DataFrame({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'balance':balance}, index=[i])])
+                total_positions = pd.concat([total_positions, pd.DataFrame({'type': 'long', 'open_price': price, 'amount': amount, 'value': value, 'stop_loss': price * (1 - stop_loss), 'take_profit': price * (1 + take_profit),'pnl':0,'balance':abs(balance)}, index=[i])])
+                
         # Si la señal es de venta
         elif sig == "Sell":
             # Si hay una posición abierta, cerrarla
@@ -226,7 +227,7 @@ def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, st
                 pnl = (price - positions[0]['open_price']) * amount
                 # Añadir la pérdida a la lista de posiciones
                 positions[0]['pnl'] = pnl
-                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': positions[0]['amount'], 'value': value, 'stop_loss': stop_loss, 'take_profit': take_profit, 'pnl': 0, 'balance': balance}, index=[i])])
+                total_positions = pd.concat([total_positions, pd.DataFrame({'open_price': price, 'amount': positions[0]['amount'], 'value': value, 'stop_loss': stop_loss, 'take_profit': take_profit, 'pnl': pnl, 'balance': balance}, index=[i])])
                 # Eliminar la posición de la lista de posiciones
                 positions.pop(0)
                 
@@ -264,7 +265,7 @@ def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, st
         # Eliminar la posición de la lista de posiciones
         positions.pop(0)
     
-    total_positions.dropna(inplace = True)
+    #total_positions.dropna(inplace = True)
     # Plot RSI and Bollinger Bands
     _, bb_fig = bollinger(data, window_length, k)
     _, rsi_fig = rsi(data, rsi_window)
@@ -320,3 +321,21 @@ def optimize_parameters_pso(data, max_volume=10000, max_stop_loss=0.5, max_take_
     else:
         best_volume, best_stop_loss, best_take_profit = best_params
         return best_volume, best_stop_loss, best_take_profit, -best_balance[0]
+
+
+def mad(datos,rf):
+    datos["rendimiento"] = (datos["balance"] / datos["balance"].shift(1) - 1) * 100
+
+    # Calcular las dos medias de atribución de desempeño y el índice de Sharpe
+    media_aritmetica = datos["rendimiento"].mean()
+    media_geometrica = (datos["rendimiento"] + 100).prod() ** (1 / len(datos)) - 100
+    sharpe_ratio = (datos["rendimiento"].mean() - rf) / datos["rendimiento"].std()
+
+    medidas = {
+        "Media Aritmética": [media_aritmetica],
+        "Media Geométrica": [media_geometrica],
+        "Radio de Sharpe": [sharpe_ratio]
+    }
+    df_medidas = pd.DataFrame(medidas)
+
+    return df_medidas
