@@ -116,9 +116,9 @@ def signal(data, window_length=20, k=2, rsi_window=25):
     rsi_signal = rsi_df['rsi'] - 50
     
     if bb_signal.iloc[-1] == 1 and rsi_signal.iloc[-1] > 0:
-        return "Sell"
-    elif bb_signal.iloc[-1] == -1 and rsi_signal.iloc[-1] < 0:
         return "Buy"
+    elif bb_signal.iloc[-1] == -1 and rsi_signal.iloc[-1] < 0:
+        return "Sell"
     elif rsi_signal.iloc[-1] > 0:
         return "Buy"
     else:
@@ -127,7 +127,7 @@ def signal(data, window_length=20, k=2, rsi_window=25):
 
 def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, stop_loss=0.02, take_profit=0.03):
     data.index = pd.to_datetime(data.time)
-    data = data.groupby(pd.Grouper(freq='m')).last()
+    data = data.groupby(pd.Grouper(freq='w')).last()
     data = data.dropna()
     data
     positions = []
@@ -264,6 +264,7 @@ def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, st
         # Eliminar la posición de la lista de posiciones
         positions.pop(0)
     
+    total_positions.dropna(inplace = True)
     # Plot RSI and Bollinger Bands
     _, bb_fig = bollinger(data, window_length, k)
     _, rsi_fig = rsi(data, rsi_window)
@@ -315,18 +316,7 @@ def optimize_parameters_pso(data, max_volume=10000, max_stop_loss=0.5, max_take_
 
     # Check if best_params is a scalar value
     if np.isscalar(best_params):
-        return best_params, None, None, -best_balance
+        return abs(best_params), abs(-best_balance)
     else:
         best_volume, best_stop_loss, best_take_profit = best_params
         return best_volume, best_stop_loss, best_take_profit, -best_balance[0]
-
-
-
-
-
-
-
-
-
-
-
