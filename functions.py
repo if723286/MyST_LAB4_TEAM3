@@ -127,7 +127,7 @@ def signal(data, window_length=20, k=2, rsi_window=25):
 
 def automated_trading(data, window_length=15, k=3, rsi_window=1, volume=1000, stop_loss=0.02, take_profit=0.03):
     data.index = pd.to_datetime(data.time)
-    data = data.groupby(pd.Grouper(freq='m')).last()
+    data = data.groupby(pd.Grouper(freq='w')).last()
     data = data.dropna()
     data
     positions = []
